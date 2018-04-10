@@ -1,4 +1,3 @@
-const fs = require('fs');
 const csv = require('csvtojson');
 
 const { generateCombinations, cartesian } = require('./util');
