@@ -13,7 +13,7 @@ const showError = err => {
   process.exit(1);
 };
 
-const path = argv._[1];
+const path = argv._[0];
 if ('string' !== typeof path || !path) showError('Missing path.');
 
 getPossibleSpecializations(path);
