@@ -8,7 +8,7 @@ Dieses Modul hilft dir die Vertiefungsgebiete so zu wählen, dass du keine CPs v
 
 ## Install
 
-`git clone https://github.com/jfilter/hpi-kurs-zuordnung`
+`git clone https://github.com/jfilter/hpi-kurs-zuordnung && cd hpi-kurs-zuordnung && yarn install` (oder `npm install`)
 
 oder
 
