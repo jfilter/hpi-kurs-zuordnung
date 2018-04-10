@@ -20,10 +20,15 @@ oder
 
 ## Usage
 
-Wenn du es gecloned hast, die [Belegungen.csv](Belegungen.csv) anpassen.
+Wenn du es gecloned hast:
+
+1.  die [Belegungen.csv](Belegungen.csv) anpassen.
+2.  `yarn start` oder `npm start` oder `node index.js`
 
 Wenn du es global installiert ist:
-`hpi <Pfad zur einer Datei im Format von Belegungen.csv>`
+
+1.  Datei im Format von [Belegungen.csv](Belegungen.csv) erstellen
+2.  `hpi <Pfad zu der Datei aus 1.>`
 
 ## Future Work
 
