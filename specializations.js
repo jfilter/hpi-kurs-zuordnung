@@ -2,7 +2,11 @@ const csv = require('csvtojson');
 
 const { generateCombinations, cartesian } = require('./util');
 
-const regulation = { ITSE: 24, VT1: 24, VT2: 15 };
+const regulation = {
+  ITSE: [[18, 3], [6, 1]],
+  VT1: [[18, 3], [6, 1]],
+  VT2: [[9, 3], [6, 1]],
+};
 const specializations = ['HCT', 'SAMT', 'BPET', 'OSIS', 'IST'];
 
 const sumUpCoursCPs = (courses, spec) =>
@@ -10,6 +14,32 @@ const sumUpCoursCPs = (courses, spec) =>
     .filter(x => x.spec === spec)
     .map(x => x.cp)
     .reduce((x, y) => x + y, 0);
+
+const getFinalGrade = (courses, spec) => {
+  const grades = courses.filter(x => x.spec === spec).map(x => x.grade);
+  const gradeCombinations = [];
+
+  for (let x of generateCombinations(grades)) {
+    gradeCombinations.push(x);
+  }
+
+  const finalGrades = gradeCombinations.map(x => {
+    let sumpCp = 0;
+    let sumGrad = 0;
+    let sumFactor = 0;
+    x.forEach(xx => {
+      if (sumpCp < 6) {
+        sumGrad += xx;
+        sumFactor++;
+      } else {
+        sumGrad += 3 * xx;
+        sumFactor += 3;
+      }
+    });
+    return sumGrad / sumFactor;
+  });
+  return Math.min(...finalGrades);
+};
 
 const generateCourseAssignmentsForSpecCombo = (courses, spec) => {
   const [VT1, VT2] = spec;
@@ -23,15 +53,26 @@ const generateCourseAssignmentsForSpecCombo = (courses, spec) => {
         name: course['Name'],
         spec: 'ITSE',
         cp: course['CP'],
+        grade: course['Grade'],
       });
     }
 
     if (course[VT1] === 1) {
-      assignments.push({ name: course['Name'], spec: VT1, cp: course['CP'] });
+      assignments.push({
+        name: course['Name'],
+        spec: VT1,
+        cp: course['CP'],
+        grade: course['Grade'],
+      });
     }
 
     if (course[VT2] === 1) {
-      assignments.push({ name: course['Name'], spec: VT2, cp: course['CP'] });
+      assignments.push({
+        name: course['Name'],
+        spec: VT2,
+        cp: course['CP'],
+        grade: course['Grade'],
+      });
     }
 
     allAssignments.push(assignments);
@@ -52,12 +93,26 @@ const generateCourseAssignmentsForSpecCombo = (courses, spec) => {
         sumUpCoursCPs(courseAssignment, x)
       );
 
+      const allGrades = ['ITSE', VT1, VT2].map(x =>
+        getFinalGrade(courseAssignment, x)
+      );
+
+      // console.log(allGrades);
+
+      const grade =
+        (allGrades[0] * (18 * 3 + 6) +
+          allGrades[1] * (18 * 3 + 6) +
+          allGrades[2] * (9 * 3 + 6) +
+          9 * 1.0 * 3 +
+          30 * 3.0 * 3) /
+        (2 * 18 * 3 + 9 + 3 * 6 + 39 * 3);
+
       if (
-        sums[0] <= regulation.ITSE &&
-        sums[1] <= regulation.VT1 &&
-        sums[2] <= regulation.VT2
+        sums[0] <= regulation.ITSE.map(x => x[0]).reduce((x, y) => x + y) &&
+        sums[1] <= regulation.VT1.map(x => x[0]).reduce((x, y) => x + y) &&
+        sums[2] <= regulation.VT2.map(x => x[0]).reduce((x, y) => x + y)
       ) {
-        return { bel: courseAssignment, sums };
+        return { bel: courseAssignment, sums, grade };
       }
       return null;
     })
@@ -74,6 +129,7 @@ const getPossibleSpecializations = path => {
   csv({
     colParser: {
       CP: 'number',
+      Grade: 'number',
       HCT: 'number',
       SAMT: 'number',
       BPET: 'number',
@@ -96,7 +152,8 @@ const getPossibleSpecializations = path => {
           c.forEach(x => {
             console.log(specCombination);
             console.log(x.sums);
-            x.bel.forEach(x => console.log(x.name, x.spec));
+            console.log(x.grade);
+            x.bel.forEach(x => console.log(x.name, x.spec, x.grade));
           });
           if (c.length !== 0)
             summary += specCombination.join('\t') + '\t' + c.length + '\n';
